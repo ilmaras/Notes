@@ -1,0 +1,44 @@
+<section class="composer" aria-labelledby="new-note-title">
+  <h2 id="new-note-title">Naujas įrašas</h2>
+
+  <form [formGroup]="noteForm" (ngSubmit)="submit()" novalidate>
+    <div class="field">
+      <div class="label-row">
+        <label for="note-title">Antraštė</label>
+        <span>{{ noteForm.controls.title.value.length }}/80</span>
+      </div>
+      <input
+        id="note-title"
+        type="text"
+        formControlName="title"
+        maxlength="80"
+        autocomplete="off"
+        [attr.aria-invalid]="noteForm.controls.title.invalid && noteForm.controls.title.touched"
+        aria-describedby="title-error"
+      />
+      @if (noteForm.controls.title.invalid && noteForm.controls.title.touched) {
+        <p id="title-error" class="error">Įrašykite užrašo antraštę.</p>
+      }
+    </div>
+
+    <div class="field">
+      <div class="label-row">
+        <label for="note-text">Tekstas</label>
+        <span>{{ noteForm.controls.text.value.length }}/2000</span>
+      </div>
+      <textarea
+        id="note-text"
+        formControlName="text"
+        maxlength="2000"
+        rows="8"
+        [attr.aria-invalid]="noteForm.controls.text.invalid && noteForm.controls.text.touched"
+        aria-describedby="text-error"
+      ></textarea>
+      @if (noteForm.controls.text.invalid && noteForm.controls.text.touched) {
+        <p id="text-error" class="error">Įrašykite užrašo tekstą.</p>
+      }
+    </div>
+
+    <button type="submit">Pridėti</button>
+  </form>
+</section>

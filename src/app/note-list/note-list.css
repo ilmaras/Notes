@@ -1,0 +1,92 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+h2 {
+  margin: 0 0 1.25rem;
+  color: var(--ink);
+  font-size: 1.3rem;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 2rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 0.6rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.note-card {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: #fff;
+}
+
+.card-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-heading h3 {
+  overflow-wrap: anywhere;
+  margin: 0 0 0.15rem;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+time {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.note-card > p {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: var(--text);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.delete-button {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.delete-button:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.delete-button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 980px) {
+  .notes-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,8 @@
+<main class="page-shell">
+  <h1>Mano užrašinė</h1>
+
+  <div class="workspace">
+    <app-note-form (noteCreated)="addNote($event)" />
+    <app-note-list [notes]="notes()" (deleteRequested)="deleteNote($event)" />
+  </div>
+</main>

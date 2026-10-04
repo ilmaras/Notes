@@ -1,0 +1,32 @@
+<section class="notes-section" aria-labelledby="saved-notes-title" aria-live="polite">
+  <h2 id="saved-notes-title">Išsaugoti užrašai</h2>
+
+  @if (notes().length === 0) {
+    <p class="empty-state">Užrašų nėra.</p>
+  } @else {
+    <div class="notes-grid">
+      @for (note of notes(); track note.id) {
+        <article class="note-card">
+          <div class="card-heading">
+            <div>
+              <h3>{{ note.title }}</h3>
+              <time [attr.datetime]="note.createdAt">
+                {{ note.createdAt | date: 'yyyy-MM-dd, HH:mm' }}
+              </time>
+            </div>
+            <button
+              type="button"
+              class="delete-button"
+              (click)="deleteRequested.emit(note.id)"
+              [attr.aria-label]="'Ištrinti užrašą „' + note.title + '“'"
+              title="Ištrinti užrašą"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <p>{{ note.text }}</p>
+        </article>
+      }
+    </div>
+  }
+</section>
