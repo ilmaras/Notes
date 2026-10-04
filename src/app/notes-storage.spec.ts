@@ -1,60 +1,71 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { NOTES_STORAGE_KEY, NotesStorage } from './notes-storage';
+import type { Note } from './note';
+import { NotesStorage } from './notes-storage';
 
 describe('NotesStorage', () => {
+  let http: HttpTestingController;
+  let storage: NotesStorage;
+
   beforeEach(() => {
-    localStorage.clear();
-    TestBed.resetTestingModule();
-  });
-
-  it('stores a new note in localStorage', () => {
-    const storage = TestBed.inject(NotesStorage);
-
-    storage.add({ title: 'Pirmas užrašas', text: 'Svarbus tekstas' });
-
-    expect(storage.notes()).toHaveLength(1);
-    expect(storage.notes()[0]).toMatchObject({
-      title: 'Pirmas užrašas',
-      text: 'Svarbus tekstas',
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    expect(JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) ?? '[]')).toHaveLength(1);
+    http = TestBed.inject(HttpTestingController);
+    storage = TestBed.inject(NotesStorage);
   });
 
-  it('loads previously stored notes', () => {
-    localStorage.setItem(
-      NOTES_STORAGE_KEY,
-      JSON.stringify([
-        {
-          id: 'note-1',
-          title: 'Išsaugotas užrašas',
-          text: 'Tekstas iš localStorage',
-          createdAt: '2026-10-04T10:00:00.000Z',
-        },
-      ]),
-    );
+  afterEach(() => {
+    http.verify();
+  });
 
-    const storage = TestBed.inject(NotesStorage);
+  it('loads notes from the API', () => {
+    const note = createNote();
 
+    http.expectOne('/api/notes').flush([note]);
+
+    expect(storage.notes()).toEqual([note]);
+    expect(storage.loading()).toBe(false);
+  });
+
+  it('adds a note through the API', async () => {
+    http.expectOne('/api/notes').flush([]);
+
+    const added = storage.add({ title: 'Pirmas užrašas', text: 'Svarbus tekstas' });
+    const request = http.expectOne('/api/notes');
+    expect(request.request.method).toBe('POST');
+    request.flush(createNote());
+
+    expect(await added).toBe(true);
     expect(storage.notes()).toHaveLength(1);
-    expect(storage.notes()[0].title).toBe('Išsaugotas užrašas');
   });
 
-  it('removes a note from memory and localStorage', () => {
-    const storage = TestBed.inject(NotesStorage);
-    storage.add({ title: 'Trinti', text: 'Šis užrašas bus pašalintas' });
-    const id = storage.notes()[0].id;
+  it('removes a note through the API', () => {
+    const note = createNote();
+    http.expectOne('/api/notes').flush([note]);
 
-    storage.remove(id);
+    storage.remove(note.id);
+    const request = http.expectOne(`/api/notes/${note.id}`);
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null);
 
     expect(storage.notes()).toEqual([]);
-    expect(JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) ?? '[]')).toEqual([]);
   });
 
-  it('ignores invalid stored data', () => {
-    localStorage.setItem(NOTES_STORAGE_KEY, '{invalid json');
+  it('reports an API connection error', () => {
+    http.expectOne('/api/notes').flush(null, { status: 500, statusText: 'Server Error' });
 
-    const storage = TestBed.inject(NotesStorage);
-
-    expect(storage.notes()).toEqual([]);
+    expect(storage.loading()).toBe(false);
+    expect(storage.error()).toContain('Nepavyko prisijungti');
   });
 });
+
+function createNote(): Note {
+  return {
+    id: 'note-1',
+    title: 'Išsaugotas užrašas',
+    text: 'Tekstas iš API',
+    createdAt: '2026-10-04T10:00:00.000Z',
+  };
+}

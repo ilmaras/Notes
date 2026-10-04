@@ -1,6 +1,13 @@
 <main class="page-shell">
   <h1>Mano užrašinė</h1>
 
+  @if (loading()) {
+    <p class="status" role="status">Kraunami užrašai...</p>
+  }
+  @if (error()) {
+    <p class="status error-status" role="alert">{{ error() }}</p>
+  }
+
   <div class="workspace">
     <app-note-form (noteCreated)="addNote($event)" />
     <app-note-list [notes]="notes()" (deleteRequested)="deleteNote($event)" />

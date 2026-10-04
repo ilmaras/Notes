@@ -4,10 +4,12 @@
   "packageManager": "npm@11.19.0",
   "scripts": {
     "ng": "ng",
+    "api": "node DB/api.mjs",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:backend": "node --test DB/sqlite.spec.mjs DB/api.spec.mjs"
   },
   "private": true,
   "dependencies": {

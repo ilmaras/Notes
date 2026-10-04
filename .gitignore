@@ -6,6 +6,12 @@
 /out-tsc
 /bazel-out
 
+# SQLite data
+/DB/data/*.db
+/DB/data/*.db-wal
+/DB/data/*.db-shm
+/DB/data/*.db-journal
+
 # Node
 /node_modules
 npm-debug.log

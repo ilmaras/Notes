@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import type { NoteDraft } from './note';
 import { NoteForm } from './note-form/note-form';
 import { NoteList } from './note-list/note-list';
@@ -12,11 +12,16 @@ import { NotesStorage } from './notes-storage';
 })
 export class App {
   private readonly notesStorage = inject(NotesStorage);
+  private readonly noteForm = viewChild(NoteForm);
 
   readonly notes = this.notesStorage.notes;
+  readonly loading = this.notesStorage.loading;
+  readonly error = this.notesStorage.error;
 
-  addNote(draft: NoteDraft): void {
-    this.notesStorage.add(draft);
+  async addNote(draft: NoteDraft): Promise<void> {
+    if (await this.notesStorage.add(draft)) {
+      this.noteForm()?.reset();
+    }
   }
 
   deleteNote(id: string): void {

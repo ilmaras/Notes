@@ -1,72 +1,58 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import type { Note, NoteDraft } from './note';
-
-export const NOTES_STORAGE_KEY = 'notes-app.notes';
 
 @Injectable({ providedIn: 'root' })
 export class NotesStorage {
-  // Vidinis signalas keiciamas tik sioje paslaugoje, o komponentams pateikiamas tik skaitymui.
-  private readonly storedNotes = signal<Note[]>(this.load());
+  private readonly http = inject(HttpClient);
+  private readonly storedNotes = signal<Note[]>([]);
+  private readonly loadingState = signal(true);
+  private readonly errorState = signal<string | null>(null);
 
   readonly notes = this.storedNotes.asReadonly();
+  readonly loading = this.loadingState.asReadonly();
+  readonly error = this.errorState.asReadonly();
 
-  add(draft: NoteDraft): void {
-    const note: Note = {
-      id: this.createId(),
-      title: draft.title.trim(),
-      text: draft.text.trim(),
-      createdAt: new Date().toISOString(),
-    };
+  constructor() {
+    this.load();
+  }
 
-    // Naujas uzrasas iterpiamas saraso pradzioje.
-    this.update([note, ...this.storedNotes()]);
+  async add(draft: NoteDraft): Promise<boolean> {
+    this.errorState.set(null);
+
+    try {
+      const note = await firstValueFrom(this.http.post<Note>('/api/notes', draft));
+      this.storedNotes.update((notes) => [note, ...notes]);
+      return true;
+    } catch {
+      this.showConnectionError();
+      return false;
+    }
   }
 
   remove(id: string): void {
-    this.update(this.storedNotes().filter((note) => note.id !== id));
+    this.errorState.set(null);
+    this.http.delete<void>(`/api/notes/${encodeURIComponent(id)}`).subscribe({
+      next: () => this.storedNotes.update((notes) => notes.filter((note) => note.id !== id)),
+      error: () => this.showConnectionError(),
+    });
   }
 
-  private update(notes: Note[]): void {
-    this.storedNotes.set(notes);
-
-    try {
-      globalThis.localStorage?.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
-    } catch {
-      // Programa veikia toliau, kai saugykla nepasiekiama arba uzpildyta.
-    }
+  private load(): void {
+    this.http.get<Note[]>('/api/notes').subscribe({
+      next: (notes) => {
+        this.storedNotes.set(notes);
+        this.loadingState.set(false);
+      },
+      error: () => {
+        this.loadingState.set(false);
+        this.showConnectionError();
+      },
+    });
   }
 
-  private load(): Note[] {
-    try {
-      const value = globalThis.localStorage?.getItem(NOTES_STORAGE_KEY);
-      if (!value) {
-        return [];
-      }
-
-      const parsed: unknown = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed.filter(isNote) : [];
-    } catch {
-      return [];
-    }
+  private showConnectionError(): void {
+    this.errorState.set('Nepavyko prisijungti prie duomenų saugyklos.');
   }
-
-  private createId(): string {
-    // Jei UUID funkcija nepasiekiama, naudojamas laiko ir atsitiktinio skaiciaus derinys.
-    return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-  }
-}
-
-// Patikrinama, ar is localStorage nuskaitytas objektas atitinka Note struktura.
-function isNote(value: unknown): value is Note {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const note = value as Partial<Note>;
-  return (
-    typeof note.id === 'string' &&
-    typeof note.title === 'string' &&
-    typeof note.text === 'string' &&
-    typeof note.createdAt === 'string'
-  );
 }

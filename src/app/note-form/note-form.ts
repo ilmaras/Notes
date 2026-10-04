@@ -35,6 +35,9 @@ export class NoteForm {
     }
 
     this.noteCreated.emit({ title, text });
+  }
+
+  reset(): void {
     this.noteForm.reset();
   }
 }
