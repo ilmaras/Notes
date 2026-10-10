@@ -1,0 +1,49 @@
+sequenceDiagram
+    actor User as Naudotojas
+    participant UI as NoteForm / NoteList
+    participant App as App
+    participant Storage as NotesStorage
+    participant API as Node.js API
+    participant DB as SQLite
+
+    User->>UI: Pasirenka veiksmą
+
+    alt Kuria įrašą
+        User->>UI: Užpildo formą ir paspaudžia „Pridėti“
+        UI->>UI: Patikrina laukus
+        UI->>App: noteSubmitted(draft)
+        App->>Storage: add(draft)
+        Storage->>API: POST /api/notes
+        API->>API: Validuoja duomenis
+        API->>DB: INSERT
+    else Redaguoja įrašą
+        User->>UI: Paspaudžia redagavimo veiksmą
+        UI->>App: editRequested(note)
+        App->>UI: Užpildo formą pasirinktu įrašu
+        User->>UI: Pakeičia duomenis ir paspaudžia „Atnaujinti“
+        UI->>App: noteSubmitted(draft)
+        App->>Storage: update(id, draft)
+        Storage->>API: PATCH /api/notes/:id
+        API->>API: Validuoja duomenis
+        API->>DB: UPDATE ... RETURNING
+    else Ištrina įrašą
+        User->>UI: Paspaudžia ištrynimo veiksmą
+        UI->>App: deleteRequested(id)
+        App->>Storage: remove(id)
+        Storage->>API: DELETE /api/notes/:id
+        API->>DB: DELETE
+    end
+
+    alt Operacija sėkminga
+        DB-->>API: Operacijos rezultatas
+        API-->>Storage: 200, 201 arba 204
+        Storage->>Storage: Prideda, pakeičia arba pašalina įrašą notes signale
+        Storage-->>App: true
+        App->>UI: Atnaujina formos režimą, jei reikia
+        UI-->>User: Parodo atnaujintą sąrašą
+    else Ryšio arba HTTP klaida
+        API--xStorage: Ryšio klaida, 400, 404 arba 500
+        Storage->>Storage: Nustato error signalą
+        Storage-->>App: false
+        App-->>User: Parodo perspėjimą ir nekeičia formos duomenų
+    end

@@ -1,0 +1,28 @@
+flowchart TB
+    user([Naudotojas])
+
+    subgraph angular["Naršyklė – Angular programa"]
+        direction TB
+        form["NoteForm<br/>forma ir validacija"]
+        app["App<br/>veiksmų koordinavimas"]
+        list["NoteList<br/>užrašų sąrašas"]
+        storage["NotesStorage<br/>signalai ir HTTP užklausos"]
+
+        form <-->|"įvykiai, būsena ir duomenys"| app
+        list <-->|"įvykiai ir užrašai"| app
+        app <-->|"veiksmai ir signalai"| storage
+    end
+
+    subgraph backend["Lokalus backend"]
+        direction TB
+        api["Node.js HTTP API<br/>maršrutai ir validacija"]
+        sqlite["SQLite valdymas<br/>SQL operacijos"]
+        database[("DB/data/notes.db")]
+
+        api --> sqlite
+        sqlite --> database
+    end
+
+    user --> form
+    user --> list
+    storage <-->|"HTTP: GET / POST / PATCH / DELETE<br/>JSON ir būsenos kodai"| api

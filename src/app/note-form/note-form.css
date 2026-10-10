@@ -99,3 +99,21 @@ button:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
+
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.cancel-button {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--muted);
+}
+
+.cancel-button:hover {
+  border-color: var(--accent);
+  background: var(--focus);
+  color: var(--accent-dark);
+}

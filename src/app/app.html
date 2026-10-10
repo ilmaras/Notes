@@ -5,11 +5,24 @@
     <p class="status" role="status">Kraunami užrašai...</p>
   }
   @if (error()) {
-    <p class="status error-status" role="alert">{{ error() }}</p>
+    <div class="alert" role="alert">
+      <span>{{ error() }}</span>
+      <button type="button" (click)="dismissError()" aria-label="Uždaryti klaidos pranešimą">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
   }
 
   <div class="workspace">
-    <app-note-form (noteCreated)="addNote($event)" />
-    <app-note-list [notes]="notes()" (deleteRequested)="deleteNote($event)" />
+    <app-note-form
+      [editingNote]="editingNote()"
+      (noteSubmitted)="saveNote($event)"
+      (editCancelled)="cancelEdit()"
+    />
+    <app-note-list
+      [notes]="notes()"
+      (editRequested)="editNote($event)"
+      (deleteRequested)="deleteNote($event)"
+    />
   </div>
 </main>

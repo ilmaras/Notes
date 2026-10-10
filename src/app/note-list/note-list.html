@@ -14,15 +14,26 @@
                 {{ note.createdAt | date: 'yyyy-MM-dd, HH:mm' }}
               </time>
             </div>
-            <button
-              type="button"
-              class="delete-button"
-              (click)="deleteRequested.emit(note.id)"
-              [attr.aria-label]="'Ištrinti užrašą „' + note.title + '“'"
-              title="Ištrinti užrašą"
-            >
-              <span aria-hidden="true">×</span>
-            </button>
+            <div class="card-actions">
+              <button
+                type="button"
+                class="card-action edit-button"
+                (click)="editRequested.emit(note)"
+                [attr.aria-label]="'Redaguoti užrašą „' + note.title + '“'"
+                title="Redaguoti užrašą"
+              >
+                <span aria-hidden="true">/</span>
+              </button>
+              <button
+                type="button"
+                class="card-action delete-button"
+                (click)="deleteRequested.emit(note.id)"
+                [attr.aria-label]="'Ištrinti užrašą „' + note.title + '“'"
+                title="Ištrinti užrašą"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
           </div>
           <p>{{ note.text }}</p>
         </article>

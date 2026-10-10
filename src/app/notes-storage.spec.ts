@@ -41,23 +41,64 @@ describe('NotesStorage', () => {
     expect(storage.notes()).toHaveLength(1);
   });
 
-  it('removes a note through the API', () => {
+  it('removes a note through the API', async () => {
     const note = createNote();
     http.expectOne('/api/notes').flush([note]);
 
-    storage.remove(note.id);
+    const removed = storage.remove(note.id);
     const request = http.expectOne(`/api/notes/${note.id}`);
     expect(request.request.method).toBe('DELETE');
     request.flush(null);
 
+    expect(await removed).toBe(true);
     expect(storage.notes()).toEqual([]);
+  });
+
+  it('updates a note through the API', async () => {
+    const note = createNote();
+    http.expectOne('/api/notes').flush([note]);
+
+    const updated = storage.update(note.id, { title: 'Pakeistas', text: 'Naujas tekstas' });
+    const request = http.expectOne(`/api/notes/${note.id}`);
+    expect(request.request.method).toBe('PATCH');
+    request.flush({ ...note, title: 'Pakeistas', text: 'Naujas tekstas' });
+
+    expect(await updated).toBe(true);
+    expect(storage.notes()[0]).toEqual({
+      ...note,
+      title: 'Pakeistas',
+      text: 'Naujas tekstas',
+    });
   });
 
   it('reports an API connection error', () => {
     http.expectOne('/api/notes').flush(null, { status: 500, statusText: 'Server Error' });
 
     expect(storage.loading()).toBe(false);
-    expect(storage.error()).toContain('Nepavyko prisijungti');
+    expect(storage.error()).toContain('Nepavyko įkelti');
+    expect(storage.error()).toContain('Duomenų saugyklos klaida');
+  });
+
+  it('reports a missing note without changing its local value', async () => {
+    const note = createNote();
+    http.expectOne('/api/notes').flush([note]);
+
+    const updated = storage.update(note.id, { title: 'Pakeistas', text: 'Naujas tekstas' });
+    http.expectOne(`/api/notes/${note.id}`).flush(null, { status: 404, statusText: 'Not Found' });
+
+    expect(await updated).toBe(false);
+    expect(storage.notes()).toEqual([note]);
+    expect(storage.error()).toBe('Redaguojamas įrašas neberastas.');
+  });
+
+  it('reports a connection error when the API is unavailable', async () => {
+    http.expectOne('/api/notes').flush([]);
+
+    const added = storage.add({ title: 'Naujas', text: 'Tekstas' });
+    http.expectOne('/api/notes').error(new ProgressEvent('error'));
+
+    expect(await added).toBe(false);
+    expect(storage.error()).toBe('Nepavyko prisijungti prie duomenų saugyklos.');
   });
 });
 

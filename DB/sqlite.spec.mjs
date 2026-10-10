@@ -26,6 +26,21 @@ describe('SQLite uzrasu saugykla', () => {
     assert.deepEqual(notesDatabase.getAll(), []);
   });
 
+  it('atnaujina uzrasa nekeisdamas id ir datos', () => {
+    const note = notesDatabase.create({ title: 'Senas', text: 'Senas tekstas' });
+    const updated = notesDatabase.update(note.id, { title: 'Naujas', text: 'Naujas tekstas' });
+
+    assert.deepEqual(updated, { ...note, title: 'Naujas', text: 'Naujas tekstas' });
+    assert.deepEqual(notesDatabase.getAll(), [updated]);
+  });
+
+  it('pranesa, kai atnaujinamo uzraso nera', () => {
+    assert.equal(
+      notesDatabase.update('nera-tokio-id', { title: 'Naujas', text: 'Naujas tekstas' }),
+      null,
+    );
+  });
+
   it('pranesa, kai trinamo uzraso nera', () => {
     assert.equal(notesDatabase.remove('nera-tokio-id'), false);
   });

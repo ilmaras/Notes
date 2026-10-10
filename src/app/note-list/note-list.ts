@@ -10,5 +10,6 @@ import type { Note } from '../note';
 })
 export class NoteList {
   readonly notes = input.required<readonly Note[]>();
+  readonly editRequested = output<Note>();
   readonly deleteRequested = output<string>();
 }

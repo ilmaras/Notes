@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor User as Naudotojas
+    participant Browser as Naršyklė
+    participant Storage as NotesStorage
+    participant API as Node.js API
+    participant DB as SQLite
+    participant List as NoteList
+
+    User->>Browser: Atveria programą
+    Browser->>Storage: Sukuria servisą
+    Storage->>API: GET /api/notes
+
+    alt Užklausa sėkminga
+        API->>DB: SELECT ... ORDER BY created_at DESC
+        DB-->>API: Užrašų masyvas
+        API-->>Storage: 200 ir JSON
+        Storage->>Storage: Atnaujina notes ir loading signalus
+        Storage-->>List: Angular perduoda užrašus
+        List-->>User: Parodo užrašų sąrašą
+    else API nepasiekiamas arba grąžina klaidą
+        API--xStorage: Ryšio arba HTTP klaida
+        Storage->>Storage: Nustato error signalą
+        Browser-->>User: Parodo uždaromą perspėjimą
+    end

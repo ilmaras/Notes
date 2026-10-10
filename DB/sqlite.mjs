@@ -22,6 +22,12 @@ export function createNotesDatabase(path) {
     INSERT INTO notes (id, title, text, created_at)
     VALUES (?, ?, ?, ?)
   `);
+  const updateOne = database.prepare(`
+    UPDATE notes
+    SET title = ?, text = ?
+    WHERE id = ?
+    RETURNING id, title, text, created_at AS createdAt
+  `);
   const deleteOne = database.prepare('DELETE FROM notes WHERE id = ?');
 
   return {
@@ -39,6 +45,11 @@ export function createNotesDatabase(path) {
 
       insertOne.run(note.id, note.title, note.text, note.createdAt);
       return note;
+    },
+
+    update(id, { title, text }) {
+      const note = updateOne.get(title, text, id);
+      return note ? { ...note } : null;
     },
 
     remove(id) {

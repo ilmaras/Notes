@@ -1,5 +1,5 @@
-<section class="composer" aria-labelledby="new-note-title">
-  <h2 id="new-note-title">Naujas įrašas</h2>
+<section class="composer" aria-labelledby="note-form-title">
+  <h2 id="note-form-title">{{ editingNote() ? 'Redaguoti įrašą' : 'Naujas įrašas' }}</h2>
 
   <form [formGroup]="noteForm" (ngSubmit)="submit()" novalidate>
     <div class="field">
@@ -39,6 +39,11 @@
       }
     </div>
 
-    <button type="submit">Pridėti</button>
+    <div class="form-actions">
+      <button type="submit">{{ editingNote() ? 'Atnaujinti' : 'Pridėti' }}</button>
+      @if (editingNote()) {
+        <button type="button" class="cancel-button" (click)="cancelEdit()">Atšaukti</button>
+      }
+    </div>
   </form>
 </section>

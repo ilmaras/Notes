@@ -60,27 +60,50 @@ time {
   white-space: pre-wrap;
 }
 
-.delete-button {
+.card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.4rem;
+}
+
+.card-action {
   display: grid;
   width: 1.8rem;
   height: 1.8rem;
-  flex: 0 0 auto;
   place-items: center;
-  border: 0;
+  border: 1px solid;
   border-radius: 50%;
   background: transparent;
-  color: var(--muted);
   cursor: pointer;
-  font-size: 1.45rem;
   line-height: 1;
 }
 
+.edit-button {
+  border-color: rgba(70, 83, 189, 0.35);
+  color: rgba(70, 83, 189, 0.75);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.edit-button:hover {
+  border-color: var(--accent);
+  background: var(--focus);
+  color: var(--accent-dark);
+}
+
+.delete-button {
+  border-color: rgba(181, 46, 72, 0.3);
+  color: rgba(181, 46, 72, 0.72);
+  font-size: 1.45rem;
+}
+
 .delete-button:hover {
+  border-color: var(--danger);
   background: var(--danger-soft);
   color: var(--danger);
 }
 
-.delete-button:focus-visible {
+.card-action:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }

@@ -26,6 +26,24 @@ export function createNotesApi(notesDatabase) {
         return;
       }
 
+      if (request.method === 'PATCH' && url.pathname.startsWith('/api/notes/')) {
+        const id = decodeURIComponent(url.pathname.slice('/api/notes/'.length));
+        const draft = validateDraft(await readJson(request));
+        if (!id || !draft) {
+          sendJson(response, 400, { error: 'Neteisingi uzraso duomenys.' });
+          return;
+        }
+
+        const note = notesDatabase.update(id, draft);
+        if (!note) {
+          sendJson(response, 404, { error: 'Uzrasas nerastas.' });
+          return;
+        }
+
+        sendJson(response, 200, note);
+        return;
+      }
+
       if (request.method === 'DELETE' && url.pathname.startsWith('/api/notes/')) {
         const id = decodeURIComponent(url.pathname.slice('/api/notes/'.length));
         if (!id || !notesDatabase.remove(id)) {
@@ -38,8 +56,12 @@ export function createNotesApi(notesDatabase) {
       }
 
       sendJson(response, 404, { error: 'Kelias nerastas.' });
-    } catch {
-      sendJson(response, 400, { error: 'Nepavyko apdoroti uzklausos.' });
+    } catch (error) {
+      if (error instanceof SyntaxError || error instanceof URIError) {
+        sendJson(response, 400, { error: 'Nepavyko apdoroti uzklausos.' });
+      } else {
+        sendJson(response, 500, { error: 'Vidine serverio klaida.' });
+      }
     }
   });
 }

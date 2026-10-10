@@ -23,7 +23,7 @@ describe('Uzrasu API', () => {
     notesDatabase.close();
   });
 
-  it('sukuria, nuskaito ir istrina uzrasa', async () => {
+  it('sukuria, nuskaito, atnaujina ir istrina uzrasa', async () => {
     const createResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -36,6 +36,20 @@ describe('Uzrasu API', () => {
 
     const listResponse = await fetch(apiUrl);
     assert.deepEqual(await listResponse.json(), [createdNote]);
+
+    const updateResponse = await fetch(`${apiUrl}/${createdNote.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Atnaujintas', text: 'Pakeistas tekstas' }),
+    });
+    const updatedNote = await updateResponse.json();
+
+    assert.equal(updateResponse.status, 200);
+    assert.deepEqual(updatedNote, {
+      ...createdNote,
+      title: 'Atnaujintas',
+      text: 'Pakeistas tekstas',
+    });
 
     const deleteResponse = await fetch(`${apiUrl}/${createdNote.id}`, { method: 'DELETE' });
     assert.equal(deleteResponse.status, 204);
@@ -50,5 +64,30 @@ describe('Uzrasu API', () => {
     });
 
     assert.equal(response.status, 400);
+  });
+
+  it('grazina 404, kai atnaujinamo uzraso nera', async () => {
+    const response = await fetch(`${apiUrl}/nera-tokio-id`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Naujas', text: 'Naujas tekstas' }),
+    });
+
+    assert.equal(response.status, 404);
+  });
+
+  it('atskiria neteisinga JSON nuo vidines serverio klaidos', async () => {
+    const invalidJsonResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{',
+    });
+    assert.equal(invalidJsonResponse.status, 400);
+
+    notesDatabase.getAll = () => {
+      throw new Error('SQLite klaida');
+    };
+    const serverErrorResponse = await fetch(apiUrl);
+    assert.equal(serverErrorResponse.status, 500);
   });
 });
